@@ -7,6 +7,11 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: "Method not allowed" };
   }
 
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error("Missing ANTHROPIC_API_KEY environment variable");
+    return { statusCode: 500, body: JSON.stringify({ error: "ANTHROPIC_API_KEY is not set on this Netlify site" }) };
+  }
+
   try {
     const { messages, max_tokens } = JSON.parse(event.body);
 
@@ -27,6 +32,7 @@ exports.handler = async (event) => {
     const data = await response.json();
 
     if (!response.ok) {
+      console.error("Anthropic API error", response.status, JSON.stringify(data));
       return { statusCode: response.status, body: JSON.stringify(data) };
     }
 
@@ -36,6 +42,7 @@ exports.handler = async (event) => {
       body: JSON.stringify(data),
     };
   } catch (err) {
+    console.error("Function crashed:", err.message);
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 };
