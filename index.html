@@ -46,6 +46,16 @@
     opacity:.85;
   }
 
+  .offline-banner{
+    display:none;
+    background:var(--coral);
+    color:white;
+    text-align:center;
+    font-size:12.5px;
+    padding:7px 12px;
+  }
+  .offline-banner.show{ display:block; }
+
   .subject-bar{
     display:flex;
     gap:8px;
@@ -115,6 +125,7 @@
   }
   .quiz-btn{
     margin-top:12px;
+    margin-right:8px;
     background:var(--board);
     color:var(--chalk);
     border:none;
@@ -125,8 +136,58 @@
     font-size:14px;
     cursor:pointer;
   }
+  .quiz-btn.secondary{
+    background:transparent;
+    border:1.5px solid var(--board);
+    color:var(--board);
+  }
   .quiz-btn:disabled{opacity:.4; cursor:not-allowed;}
   .quiz-btn:hover:not(:disabled){background:var(--board-dark);}
+  .quiz-btn.secondary:hover:not(:disabled){background:rgba(29,59,42,.08);}
+
+  .history-list{
+    margin-top:14px;
+    padding-top:12px;
+    border-top:1px dashed var(--line);
+  }
+  .history-title{
+    font-size:12.5px;
+    font-weight:700;
+    color:#6b6650;
+    margin-bottom:8px;
+  }
+  .history-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    padding:4px 0;
+    color:var(--ink);
+  }
+  .history-row .score-tag{
+    font-weight:700;
+    color:var(--board);
+  }
+
+  .search-bar{ margin-bottom:16px; }
+  .search-bar input{
+    width:100%;
+    padding:10px 14px;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    font-family:'IBM Plex Sans Thai', sans-serif;
+    font-size:14px;
+    background:var(--chalk);
+  }
+  .chapter-heading{
+    font-family:'Chonburi', serif;
+    font-weight:400;
+    font-size:16px;
+    color:var(--board);
+    margin:22px 0 12px;
+    padding-bottom:6px;
+    border-bottom:2px solid var(--board);
+  }
+  .chapter-heading:first-child{ margin-top:0; }
 
   .notes-grid{
     display:grid;
@@ -168,11 +229,37 @@
     justify-content:center;
   }
   .delete-btn:hover{ background:var(--coral); }
+  .edit-btn{
+    position:absolute;
+    top:6px; right:38px;
+    width:26px; height:26px;
+    border-radius:50%;
+    background:rgba(29,59,42,.85);
+    color:white;
+    border:none;
+    font-size:12px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .edit-btn:hover{ background:var(--board); }
   .note-card img{
     width:100%;
     display:block;
     border:1px solid var(--line);
     margin-bottom:8px;
+  }
+  .note-thumbs{
+    display:flex;
+    gap:4px;
+    margin-bottom:8px;
+  }
+  .note-thumbs img{
+    width:100%;
+    height:70px;
+    object-fit:cover;
+    margin-bottom:0;
   }
   .note-title{
     font-weight:700;
@@ -256,7 +343,7 @@
   }
   .action-sheet button:hover{ background:var(--paper-dark); }
 
-  #cameraInput{ display:none; }
+  #cameraInput, #galleryInput{ display:none; }
 
   .modal-overlay{
     position:fixed; inset:0;
@@ -283,19 +370,13 @@
     margin:0 0 14px;
     color:var(--board);
   }
-  .modal img.preview{
-    width:100%;
-    border-radius:8px;
-    margin-bottom:12px;
-    border:1px solid var(--line);
-  }
   .field-label{
     font-size:13px;
     font-weight:600;
     margin-bottom:6px;
     display:block;
   }
-  textarea, select{
+  textarea, select, input[type="text"]{
     width:100%;
     font-family:'IBM Plex Sans Thai', sans-serif;
     font-size:14px;
@@ -306,10 +387,7 @@
     background:white;
     resize:none;
   }
-  .modal-actions{
-    display:flex;
-    gap:10px;
-  }
+  .modal-actions{ display:flex; gap:10px; }
   .btn{
     flex:1;
     padding:11px;
@@ -323,6 +401,45 @@
   .btn.primary{ background:var(--board); color:var(--chalk); }
   .btn.secondary{ background:transparent; border:1.5px solid var(--line); color:var(--ink); }
   .btn:disabled{ opacity:.5; }
+
+  .photo-strip{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    margin-bottom:14px;
+  }
+  .photo-strip .thumb-wrap{ position:relative; flex:none; }
+  .photo-strip img{
+    width:72px; height:72px;
+    object-fit:cover;
+    border-radius:8px;
+    border:1px solid var(--line);
+    display:block;
+  }
+  .photo-strip .thumb-remove{
+    position:absolute;
+    top:-6px; right:-6px;
+    width:20px; height:20px;
+    border-radius:50%;
+    background:var(--coral);
+    color:white;
+    border:none;
+    font-size:11px;
+    cursor:pointer;
+  }
+  .add-photo-row{ display:flex; gap:8px; margin-bottom:16px; }
+  .add-photo-row button{
+    flex:1;
+    padding:9px;
+    border-radius:8px;
+    border:1.5px dashed var(--line);
+    background:transparent;
+    font-family:'IBM Plex Sans Thai', sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--board);
+    cursor:pointer;
+  }
 
   .loader{
     display:inline-block;
@@ -408,9 +525,7 @@
     font-weight:700;
     cursor:pointer;
   }
-  .quiz-result{
-    text-align:center;
-  }
+  .quiz-result{ text-align:center; }
   .quiz-result .score{
     font-family:'Chonburi', serif;
     font-size:44px;
@@ -422,6 +537,7 @@
 <body>
 
 <header></header>
+<div class="offline-banner" id="offlineBanner">ออฟไลน์อยู่ — ดูโน้ตเดิมได้ปกติ แต่ถ่ายรูปใหม่หรือสร้างควิซยังทำไม่ได้จนกว่าจะมีเน็ต</div>
 
 <div class="subject-bar" id="subjectBar"></div>
 <div class="board-strip"></div>
@@ -431,6 +547,15 @@
     <h2 id="summaryTitle">สรุปรวม</h2>
     <div id="summaryText" class="summary-empty">ยังไม่มีเนื้อหาสะสม — เริ่มถ่ายรูปแรกได้เลย</div>
     <button class="quiz-btn" id="quizBtn" disabled>สร้างควิซทบทวน</button>
+    <button class="quiz-btn secondary" id="weakQuizBtn" disabled>ควิซเน้นจุดอ่อน</button>
+    <div class="history-list" id="historyList" style="display:none;">
+      <div class="history-title">ประวัติคะแนน</div>
+      <div id="historyRows"></div>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="ค้นหาในโน้ต... (หัวข้อ, เนื้อหา, บท)">
   </div>
 
   <div id="notesArea"></div>
@@ -456,12 +581,39 @@
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <h3>เพิ่มบันทึกใหม่</h3>
-    <img class="preview" id="previewImg" src="">
+    <div class="photo-strip" id="photoStrip"></div>
+    <div class="add-photo-row">
+      <button type="button" id="addMoreCamera">+ ถ่ายเพิ่ม</button>
+      <button type="button" id="addMoreGallery">+ คลังภาพ</button>
+    </div>
+    <label class="field-label">บท/หัวข้อ (ถ้ามี)</label>
+    <input type="text" id="chapterInput" list="chapterList" placeholder="เช่น บทที่ 3 หรือปล่อยว่างไว้ก็ได้">
+    <datalist id="chapterList"></datalist>
     <label class="field-label">ครูพูดว่าอะไร (ถ้ามี)</label>
     <textarea id="teacherNote" rows="2" placeholder='เช่น "อันนี้ออกสอบแน่นอน" หรือปล่อยว่างไว้ก็ได้'></textarea>
     <div class="modal-actions">
       <button class="btn secondary" id="cancelBtn">ยกเลิก</button>
       <button class="btn primary" id="saveBtn">บันทึกและสรุป</button>
+    </div>
+  </div>
+</div>
+
+<!-- edit modal -->
+<div class="modal-overlay" id="editModalOverlay">
+  <div class="modal">
+    <h3>แก้ไขบันทึก</h3>
+    <label class="field-label">หัวข้อ</label>
+    <input type="text" id="editTitle">
+    <label class="field-label">บท/หัวข้อ</label>
+    <input type="text" id="editChapter" list="chapterList">
+    <label class="field-label">สรุปเนื้อหา</label>
+    <textarea id="editSummary" rows="5"></textarea>
+    <label class="field-label" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="editImportant" style="width:auto;margin:0;"> เนื้อหานี้ออกสอบ / สำคัญ
+    </label>
+    <div class="modal-actions">
+      <button class="btn secondary" id="editCancelBtn">ยกเลิก</button>
+      <button class="btn primary" id="editSaveBtn">บันทึก</button>
     </div>
   </div>
 </div>
@@ -479,22 +631,24 @@
 const state = {
   subjects: [],
   activeSubject: null,
-  notes: {},      // subject -> [{id, title, summary, important, thumb}]
-  summaries: {},  // subject -> merged summary text
-  pendingImage: null // {base64, mediaType}
+  notes: {},        // subject -> [{id, title, summary, important, chapter, thumbs:[], status}]
+  summaries: {},     // subject -> merged summary text
+  quizHistory: {},   // subject -> [{date, score, total, mode}]
+  weakPoints: {},    // subject -> [question strings that were answered wrong]
+  pendingImages: [], // [{base64, mediaType, dataUrl}]
+  editingNoteId: null,
+  searchQuery: ""
 };
 
+// ---------- storage (plain localStorage — works outside Claude artifacts) ----------
 async function storageGet(key){
-  try{ return localStorage.getItem(key); }
-  catch(e){ return null; }
+  try{ return localStorage.getItem(key); }catch(e){ return null; }
 }
 async function storageSet(key, value){
   try{ localStorage.setItem(key, value); }catch(e){ console.error(e); }
 }
 
 async function callClaude(messages, maxTokens=1024){
-  // Calls our own serverless function (netlify/functions/claude.js),
-  // which holds the real Anthropic API key server-side.
   const res = await fetch("/.netlify/functions/claude", {
     method:"POST",
     headers:{ "Content-Type":"application/json" },
@@ -505,8 +659,7 @@ async function callClaude(messages, maxTokens=1024){
     throw new Error("API error: " + errText);
   }
   const data = await res.json();
-  const text = (data.content || []).filter(b=>b.type==="text").map(b=>b.text).join("\n");
-  return text;
+  return (data.content || []).filter(b=>b.type==="text").map(b=>b.text).join("\n");
 }
 
 function parseJsonLoose(text){
@@ -524,18 +677,33 @@ async function loadAll(){
     state.notes[s] = notes ? JSON.parse(notes) : [];
     const summary = await storageGet("summary:"+s);
     state.summaries[s] = summary || "";
+    const hist = await storageGet("quizhistory:"+s);
+    state.quizHistory[s] = hist ? JSON.parse(hist) : [];
+    const weak = await storageGet("weakpoints:"+s);
+    state.weakPoints[s] = weak ? JSON.parse(weak) : [];
   }
   render();
 }
 async function saveSubjects(){ await storageSet("subjects", JSON.stringify(state.subjects)); }
 async function saveNotes(subject){ await storageSet("notes:"+subject, JSON.stringify(state.notes[subject])); }
 async function saveSummary(subject){ await storageSet("summary:"+subject, state.summaries[subject]); }
+async function saveHistory(subject){ await storageSet("quizhistory:"+subject, JSON.stringify(state.quizHistory[subject])); }
+async function saveWeakPoints(subject){ await storageSet("weakpoints:"+subject, JSON.stringify(state.weakPoints[subject])); }
+
+// ---------- offline banner ----------
+function updateOnlineStatus(){
+  document.getElementById("offlineBanner").classList.toggle("show", !navigator.onLine);
+}
+window.addEventListener("online", updateOnlineStatus);
+window.addEventListener("offline", updateOnlineStatus);
 
 // ---------- rendering ----------
 function render(){
   renderSubjectBar();
   renderSummary();
+  renderChapterList();
   renderNotes();
+  updateOnlineStatus();
 }
 
 function renderSubjectBar(){
@@ -545,7 +713,7 @@ function renderSubjectBar(){
     const tab = document.createElement("div");
     tab.className = "subject-tab" + (s===state.activeSubject ? " active":"");
     tab.textContent = s;
-    tab.onclick = ()=>{ state.activeSubject = s; render(); };
+    tab.onclick = ()=>{ state.activeSubject = s; state.searchQuery=""; document.getElementById("searchInput").value=""; render(); };
     bar.appendChild(tab);
   });
   const addTab = document.createElement("div");
@@ -557,6 +725,8 @@ function renderSubjectBar(){
       state.subjects.push(name);
       state.notes[name] = [];
       state.summaries[name] = "";
+      state.quizHistory[name] = [];
+      state.weakPoints[name] = [];
       state.activeSubject = name;
       await saveSubjects();
       render();
@@ -566,8 +736,9 @@ function renderSubjectBar(){
 }
 
 function renderSummary(){
-  document.getElementById("summaryTitle").textContent = "สรุปรวม · " + state.activeSubject;
-  const text = state.summaries[state.activeSubject];
+  const subject = state.activeSubject;
+  document.getElementById("summaryTitle").textContent = "สรุปรวม · " + subject;
+  const text = state.summaries[subject];
   const el = document.getElementById("summaryText");
   if(text){
     el.className = "summary-text";
@@ -577,42 +748,104 @@ function renderSummary(){
     el.textContent = "ยังไม่มีเนื้อหาสะสม — เริ่มถ่ายรูปแรกได้เลย";
   }
   document.getElementById("quizBtn").disabled = !text;
+
+  const weak = state.weakPoints[subject] || [];
+  document.getElementById("weakQuizBtn").disabled = weak.length===0;
+
+  const hist = (state.quizHistory[subject] || []).slice(-5).reverse();
+  const histBox = document.getElementById("historyList");
+  const histRows = document.getElementById("historyRows");
+  if(hist.length===0){
+    histBox.style.display = "none";
+  }else{
+    histBox.style.display = "block";
+    histRows.innerHTML = hist.map(h=>{
+      const d = new Date(h.date);
+      const dateStr = d.toLocaleDateString("th-TH", { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" });
+      const modeLabel = h.mode==="weak" ? " (เน้นจุดอ่อน)" : "";
+      return `<div class="history-row"><span>${dateStr}${modeLabel}</span><span class="score-tag">${h.score}/${h.total}</span></div>`;
+    }).join("");
+  }
+}
+
+function renderChapterList(){
+  const subject = state.activeSubject;
+  const chapters = Array.from(new Set((state.notes[subject]||[]).map(n=>n.chapter).filter(Boolean)));
+  const list = document.getElementById("chapterList");
+  list.innerHTML = chapters.map(c=>`<option value="${c}">`).join("");
 }
 
 function renderNotes(){
   const area = document.getElementById("notesArea");
   const subject = state.activeSubject;
-  const notes = state.notes[subject] || [];
+  let notes = state.notes[subject] || [];
+
+  const q = state.searchQuery.trim().toLowerCase();
+  if(q){
+    notes = notes.filter(n =>
+      (n.title||"").toLowerCase().includes(q) ||
+      (n.summary||"").toLowerCase().includes(q) ||
+      (n.chapter||"").toLowerCase().includes(q)
+    );
+  }
+
   if(notes.length===0){
     area.innerHTML = `<div class="empty-state">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-      <div>ยังไม่มีรูปในวิชานี้ กดปุ่มกล้องมุมขวาล่างเพื่อเริ่ม</div>
+      <div>${q ? "ไม่พบโน้ตที่ตรงกับคำค้นหา" : "ยังไม่มีรูปในวิชานี้ กดปุ่มกล้องมุมขวาล่างเพื่อเริ่ม"}</div>
     </div>`;
     return;
   }
-  area.innerHTML = "";
-  const grid = document.createElement("div");
-  grid.className = "notes-grid";
-  notes.slice().reverse().forEach(n=>{
-    const card = document.createElement("div");
-    card.className = "note-card";
-    card.innerHTML = `
-      <div class="tape"></div>
-      <button class="delete-btn" onclick="deleteNote('${subject}','${n.id}')" title="ลบ">✕</button>
-      ${n.thumb ? `<img src="${n.thumb}">` : ""}
-      ${n.status==="done" ? `<span class="badge ${n.important?'important':'skip'}">${n.important?'ออกสอบ!':'อ่านผ่านๆ'}</span>` : ""}
-      <div class="note-title">${n.title || "กำลังอ่านรูป..."}</div>
-      ${n.status==="done"
-        ? `<div class="note-summary">${n.summary}</div>`
-        : n.status==="error"
-          ? `<div class="note-status">อ่านรูปไม่สำเร็จ ลองใหม่อีกครั้ง</div>`
-          : `<div class="note-status"><span class="loader" style="border-color:rgba(34,48,31,.25); border-top-color:#22301F;"></span>กำลังสรุป...</div>`
-      }
-    `;
-    grid.appendChild(card);
+
+  // group by chapter, preserving reverse-chronological order within group
+  const ordered = notes.slice().reverse();
+  const groups = {};
+  const groupOrder = [];
+  ordered.forEach(n=>{
+    const ch = n.chapter || "ไม่ระบุบท";
+    if(!groups[ch]){ groups[ch]=[]; groupOrder.push(ch); }
+    groups[ch].push(n);
   });
-  area.appendChild(grid);
+
+  area.innerHTML = "";
+  groupOrder.forEach(ch=>{
+    const heading = document.createElement("div");
+    heading.className = "chapter-heading";
+    heading.textContent = ch;
+    area.appendChild(heading);
+
+    const grid = document.createElement("div");
+    grid.className = "notes-grid";
+    groups[ch].forEach(n=>{
+      const card = document.createElement("div");
+      card.className = "note-card";
+      const thumbsHtml = (n.thumbs && n.thumbs.length>1)
+        ? `<div class="note-thumbs">${n.thumbs.map(t=>`<img src="${t}">`).join("")}</div>`
+        : (n.thumbs && n.thumbs[0] ? `<img src="${n.thumbs[0]}">` : "");
+      card.innerHTML = `
+        <div class="tape"></div>
+        <button class="delete-btn" onclick="deleteNote('${subject}','${n.id}')" title="ลบ">✕</button>
+        ${n.status==="done" ? `<button class="edit-btn" onclick="openEditModal('${subject}','${n.id}')" title="แก้ไข">✎</button>` : ""}
+        ${thumbsHtml}
+        ${n.status==="done" ? `<span class="badge ${n.important?'important':'skip'}">${n.important?'ออกสอบ!':'อ่านผ่านๆ'}</span>` : ""}
+        <div class="note-title">${n.title || "กำลังอ่านรูป..."}</div>
+        ${n.status==="done"
+          ? `<div class="note-summary">${n.summary}</div>`
+          : n.status==="error"
+            ? `<div class="note-status">อ่านรูปไม่สำเร็จ ลองใหม่อีกครั้ง</div>`
+            : `<div class="note-status"><span class="loader" style="border-color:rgba(34,48,31,.25); border-top-color:#22301F;"></span>กำลังสรุป...</div>`
+        }
+      `;
+      grid.appendChild(card);
+    });
+    area.appendChild(grid);
+  });
 }
+
+document.getElementById("searchInput").oninput = (e)=>{
+  state.searchQuery = e.target.value;
+  renderNotes();
+};
 
 // ---------- capture flow ----------
 document.getElementById("fabBtn").onclick = (e)=>{
@@ -634,28 +867,8 @@ document.getElementById("pickGallery").onclick = ()=>{
   document.getElementById("actionSheet").classList.remove("show");
   document.getElementById("galleryInput").click();
 };
-
-document.getElementById("cameraInput").onchange = (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  readFileToPending(file);
-  e.target.value = "";
-};
-
-document.getElementById("galleryInput").onchange = async (e)=>{
-  const files = Array.from(e.target.files || []);
-  e.target.value = "";
-  if(files.length===0) return;
-  if(files.length===1){
-    readFileToPending(files[0]);
-    return;
-  }
-  // multiple files: skip the note modal, process each directly
-  for(const file of files){
-    const img = await fileToImage(file);
-    await addAndProcessNote(state.activeSubject, img, "");
-  }
-};
+document.getElementById("addMoreCamera").onclick = ()=> document.getElementById("cameraInput").click();
+document.getElementById("addMoreGallery").onclick = ()=> document.getElementById("galleryInput").click();
 
 function fileToImage(file){
   return new Promise((resolve)=>{
@@ -668,55 +881,88 @@ function fileToImage(file){
   });
 }
 
-function readFileToPending(file){
-  const reader = new FileReader();
-  reader.onload = ()=>{
-    const dataUrl = reader.result;
-    const base64 = dataUrl.split(",")[1];
-    state.pendingImage = { base64, mediaType: file.type || "image/jpeg", dataUrl };
-    document.getElementById("previewImg").src = dataUrl;
-    document.getElementById("teacherNote").value = "";
-    document.getElementById("modalOverlay").classList.add("show");
-  };
-  reader.readAsDataURL(file);
+async function addFilesToPending(files){
+  for(const file of files){
+    const img = await fileToImage(file);
+    state.pendingImages.push(img);
+  }
+  renderPhotoStrip();
+  document.getElementById("modalOverlay").classList.add("show");
+}
+
+document.getElementById("cameraInput").onchange = async (e)=>{
+  const files = Array.from(e.target.files || []);
+  e.target.value = "";
+  if(files.length) await addFilesToPending(files);
+};
+document.getElementById("galleryInput").onchange = async (e)=>{
+  const files = Array.from(e.target.files || []);
+  e.target.value = "";
+  if(files.length) await addFilesToPending(files);
+};
+
+function renderPhotoStrip(){
+  const strip = document.getElementById("photoStrip");
+  strip.innerHTML = "";
+  state.pendingImages.forEach((img, i)=>{
+    const wrap = document.createElement("div");
+    wrap.className = "thumb-wrap";
+    wrap.innerHTML = `<img src="${img.dataUrl}"><button class="thumb-remove" data-i="${i}">✕</button>`;
+    strip.appendChild(wrap);
+  });
+  strip.querySelectorAll(".thumb-remove").forEach(btn=>{
+    btn.onclick = ()=>{
+      state.pendingImages.splice(parseInt(btn.dataset.i), 1);
+      renderPhotoStrip();
+    };
+  });
 }
 
 document.getElementById("cancelBtn").onclick = ()=>{
   document.getElementById("modalOverlay").classList.remove("show");
-  state.pendingImage = null;
+  state.pendingImages = [];
+  document.getElementById("chapterInput").value = "";
+  document.getElementById("teacherNote").value = "";
 };
 
 document.getElementById("saveBtn").onclick = async ()=>{
-  if(!state.pendingImage) return;
+  if(state.pendingImages.length===0) return;
   const subject = state.activeSubject;
   const teacherNote = document.getElementById("teacherNote").value.trim();
-  const img = state.pendingImage;
+  const chapter = document.getElementById("chapterInput").value.trim();
+  const images = state.pendingImages.slice();
   document.getElementById("modalOverlay").classList.remove("show");
-  state.pendingImage = null;
-  await addAndProcessNote(subject, img, teacherNote);
+  state.pendingImages = [];
+  document.getElementById("chapterInput").value = "";
+  document.getElementById("teacherNote").value = "";
+  await addAndProcessNote(subject, images, teacherNote, chapter);
 };
 
-async function addAndProcessNote(subject, img, teacherNote){
+async function addAndProcessNote(subject, images, teacherNote, chapter){
   const noteId = Date.now().toString() + Math.random().toString(36).slice(2,6);
-  const note = { id:noteId, title:"", summary:"", important:false, thumb:img.dataUrl, status:"loading" };
+  const note = {
+    id:noteId, title:"", summary:"", important:false,
+    chapter: chapter || "", thumbs: images.map(i=>i.dataUrl), status:"loading"
+  };
   state.notes[subject].push(note);
   if(subject===state.activeSubject) render();
   await saveNotes(subject);
 
   try{
-    const prompt = `นี่คือรูปที่นักเรียนถ่ายในห้องเรียนวิชา "${subject}"${teacherNote ? ` ครูพูดว่า: "${teacherNote}"` : ""}.
+    const multiNote = images.length>1
+      ? `รูปชุดนี้มี ${images.length} ภาพ อาจเป็นมุมต่างกันของเนื้อหาเดียวกัน ให้อ่านรวมกันเป็นเรื่องเดียว`
+      : "";
+    const prompt = `นี่คือรูปที่นักเรียนถ่ายในห้องเรียนวิชา "${subject}"${chapter ? ` บท/หัวข้อ: "${chapter}"` : ""}${teacherNote ? ` ครูพูดว่า: "${teacherNote}"` : ""}.
+${multiNote}
 อ่านเนื้อหาในรูป (กระดาน สไลด์ หนังสือ หรือโน้ต) แล้วสรุปเป็นเนื้อหาสั้นกระชับ เป็นภาษาไทย เหมาะสำหรับทบทวนก่อนสอบ
 ตอบเป็น JSON เท่านั้น ไม่ต้องมีข้อความอื่น รูปแบบ:
 {"title": "หัวข้อสั้นๆ", "summary": "สรุปเนื้อหา 2-4 ประโยค", "important": true หรือ false}
 important ให้เป็น true ถ้าเนื้อหาดูสำคัญหรือครูบอกว่าจะออกสอบ, false ถ้าดูเหมือนเป็นแค่ตัวอย่างทั่วไปหรือครูบอกว่าไม่ต้องจด`;
 
-    const text = await callClaude([{
-      role:"user",
-      content:[
-        { type:"image", source:{ type:"base64", media_type: img.mediaType, data: img.base64 } },
-        { type:"text", text: prompt }
-      ]
-    }]);
+    const content = images.map(img => ({ type:"image", source:{ type:"base64", media_type: img.mediaType, data: img.base64 } }));
+    content.push({ type:"text", text: prompt });
+
+    const text = await callClaude([{ role:"user", content }]);
     const parsed = parseJsonLoose(text);
 
     const idx = state.notes[subject].findIndex(n=>n.id===noteId);
@@ -740,6 +986,41 @@ async function deleteNote(subject, noteId){
   await refreshSummary(subject);
 }
 
+// ---------- edit ----------
+function openEditModal(subject, noteId){
+  const note = state.notes[subject].find(n=>n.id===noteId);
+  if(!note) return;
+  state.editingNoteId = noteId;
+  document.getElementById("editTitle").value = note.title || "";
+  document.getElementById("editChapter").value = note.chapter || "";
+  document.getElementById("editSummary").value = note.summary || "";
+  document.getElementById("editImportant").checked = !!note.important;
+  document.getElementById("editModalOverlay").classList.add("show");
+}
+document.getElementById("editCancelBtn").onclick = ()=>{
+  document.getElementById("editModalOverlay").classList.remove("show");
+  state.editingNoteId = null;
+};
+document.getElementById("editSaveBtn").onclick = async ()=>{
+  const subject = state.activeSubject;
+  const noteId = state.editingNoteId;
+  if(!noteId) return;
+  const idx = state.notes[subject].findIndex(n=>n.id===noteId);
+  if(idx===-1) return;
+  state.notes[subject][idx] = {
+    ...state.notes[subject][idx],
+    title: document.getElementById("editTitle").value.trim(),
+    chapter: document.getElementById("editChapter").value.trim(),
+    summary: document.getElementById("editSummary").value.trim(),
+    important: document.getElementById("editImportant").checked
+  };
+  await saveNotes(subject);
+  document.getElementById("editModalOverlay").classList.remove("show");
+  state.editingNoteId = null;
+  render();
+  await refreshSummary(subject);
+};
+
 async function refreshSummary(subject){
   const doneNotes = state.notes[subject].filter(n=>n.status==="done");
   if(doneNotes.length===0){
@@ -748,11 +1029,11 @@ async function refreshSummary(subject){
     render();
     return;
   }
-  const list = doneNotes.map((n,i)=>`${i+1}. [${n.important?"สำคัญ":"ทั่วไป"}] ${n.title}: ${n.summary}`).join("\n");
+  const list = doneNotes.map((n,i)=>`${i+1}. [${n.important?"สำคัญ":"ทั่วไป"}]${n.chapter?` (${n.chapter})`:""} ${n.title}: ${n.summary}`).join("\n");
   const prompt = `นี่คือรายการบันทึกย่อยที่นักเรียนถ่ายเก็บไว้ในวิชา "${subject}":
 ${list}
 
-จงรวมเป็นสรุปเนื้อหาวิชานี้ฉบับเดียว จัดกลุ่มตามหัวข้อ ใช้ bullet point (ขึ้นต้นด้วย -) กระชับ อ่านง่าย เน้นเนื้อหาที่ทำเครื่องหมายว่า "สำคัญ" เป็นพิเศษ ตอบเป็นข้อความล้วน ภาษาไทย ไม่ต้องมี JSON หรือคำนำ`;
+จงรวมเป็นสรุปเนื้อหาวิชานี้ฉบับเดียว จัดกลุ่มตามหัวข้อ/บท ใช้ bullet point (ขึ้นต้นด้วย -) กระชับ อ่านง่าย เน้นเนื้อหาที่ทำเครื่องหมายว่า "สำคัญ" เป็นพิเศษ ตอบเป็นข้อความล้วน ภาษาไทย ไม่ต้องมี JSON หรือคำนำ`;
   try{
     const text = await callClaude([{ role:"user", content: prompt }], 1200);
     state.summaries[subject] = text.trim();
@@ -764,7 +1045,7 @@ ${list}
 // ---------- quiz ----------
 let quizState = null;
 
-document.getElementById("quizBtn").onclick = async ()=>{
+async function startQuiz(mode){
   const subject = state.activeSubject;
   const summary = state.summaries[subject];
   if(!summary) return;
@@ -774,32 +1055,43 @@ document.getElementById("quizBtn").onclick = async ()=>{
   document.getElementById("quizProgress").textContent = "";
 
   try{
-    const prompt = `จากสรุปเนื้อหาวิชา "${subject}" ต่อไปนี้:
+    let prompt;
+    if(mode==="weak"){
+      const weak = (state.weakPoints[subject] || []).slice(-15);
+      prompt = `จากสรุปเนื้อหาวิชา "${subject}" ต่อไปนี้:
+${summary}
+
+ก่อนหน้านี้นักเรียนตอบคำถามเหล่านี้ผิด (แสดงว่ายังไม่แม่นเรื่องนี้):
+${weak.map((w,i)=>`${i+1}. ${w}`).join("\n")}
+
+จงสร้างคำถามแบบเลือกตอบ 5 ข้อ เพื่อทบทวนก่อนสอบ โดยเน้นเจาะจุดที่นักเรียนเคยตอบผิดหรือหัวข้อใกล้เคียงเป็นพิเศษ ตอบเป็น JSON array เท่านั้น ไม่ต้องมีข้อความอื่น รูปแบบ:
+[{"question":"...", "choices":["...","...","...","..."], "answer_index":0, "explanation":"..."}]
+คำถามและตัวเลือกเป็นภาษาไทย, answer_index คือ index (0-3) ของตัวเลือกที่ถูก, explanation อธิบายสั้นๆ ว่าทำไมถูก`;
+    } else {
+      prompt = `จากสรุปเนื้อหาวิชา "${subject}" ต่อไปนี้:
 ${summary}
 
 จงสร้างคำถามแบบเลือกตอบ 5 ข้อ เพื่อทบทวนก่อนสอบ ตอบเป็น JSON array เท่านั้น ไม่ต้องมีข้อความอื่น รูปแบบ:
 [{"question":"...", "choices":["...","...","...","..."], "answer_index":0, "explanation":"..."}]
 คำถามและตัวเลือกเป็นภาษาไทย, answer_index คือ index (0-3) ของตัวเลือกที่ถูก, explanation อธิบายสั้นๆ ว่าทำไมถูก`;
+    }
     const text = await callClaude([{ role:"user", content: prompt }], 1500);
     const questions = parseJsonLoose(text);
-    quizState = { questions, index:0, score:0, answered:false };
+    quizState = { questions, index:0, score:0, answered:false, mode, wrongQuestions:[] };
     renderQuizQuestion();
   }catch(err){
     console.error(err);
     document.getElementById("quizBody").innerHTML = `<div style="text-align:center;">สร้างควิซไม่สำเร็จ ลองใหม่อีกครั้ง</div>`;
   }
-};
+}
+
+document.getElementById("quizBtn").onclick = ()=> startQuiz("normal");
+document.getElementById("weakQuizBtn").onclick = ()=> startQuiz("weak");
 
 function renderQuizQuestion(){
   const { questions, index } = quizState;
   if(index >= questions.length){
-    document.getElementById("quizProgress").textContent = "";
-    document.getElementById("quizBody").innerHTML = `
-      <div class="quiz-result">
-        <div class="score">${quizState.score}/${questions.length}</div>
-        <div style="margin-bottom:20px;">คะแนนทบทวนของคุณ</div>
-        <button class="btn primary" style="max-width:220px;margin:0 auto;display:block;" onclick="document.getElementById('quizOverlay').classList.remove('show')">เสร็จสิ้น</button>
-      </div>`;
+    finishQuiz();
     return;
   }
   document.getElementById("quizProgress").textContent = `ข้อ ${index+1} / ${questions.length}`;
@@ -831,7 +1123,11 @@ function selectChoice(i){
     if(bi===q.answer_index) b.classList.add("correct");
     else if(bi===i) b.classList.add("wrong");
   });
-  if(i===q.answer_index) quizState.score++;
+  if(i===q.answer_index){
+    quizState.score++;
+  } else {
+    quizState.wrongQuestions.push(q.question);
+  }
 
   const explain = document.createElement("div");
   explain.className = "explain";
@@ -845,9 +1141,34 @@ function selectChoice(i){
   document.getElementById("quizBody").appendChild(nextBtn);
 }
 
+async function finishQuiz(){
+  const subject = state.activeSubject;
+  document.getElementById("quizProgress").textContent = "";
+  document.getElementById("quizBody").innerHTML = `
+    <div class="quiz-result">
+      <div class="score">${quizState.score}/${quizState.questions.length}</div>
+      <div style="margin-bottom:20px;">คะแนนทบทวนของคุณ</div>
+      <button class="btn primary" style="max-width:220px;margin:0 auto;display:block;" id="quizDoneBtn">เสร็จสิ้น</button>
+    </div>`;
+  document.getElementById("quizDoneBtn").onclick = ()=> document.getElementById("quizOverlay").classList.remove("show");
+
+  state.quizHistory[subject] = state.quizHistory[subject] || [];
+  state.quizHistory[subject].push({ date: Date.now(), score: quizState.score, total: quizState.questions.length, mode: quizState.mode });
+  if(state.quizHistory[subject].length > 30) state.quizHistory[subject] = state.quizHistory[subject].slice(-30);
+  await saveHistory(subject);
+
+  if(quizState.wrongQuestions.length){
+    state.weakPoints[subject] = (state.weakPoints[subject] || []).concat(quizState.wrongQuestions);
+    if(state.weakPoints[subject].length > 30) state.weakPoints[subject] = state.weakPoints[subject].slice(-30);
+    await saveWeakPoints(subject);
+  }
+  render();
+}
+
 document.getElementById("quizClose").onclick = ()=> document.getElementById("quizOverlay").classList.remove("show");
 
 loadAll();
+updateOnlineStatus();
 
 if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{
