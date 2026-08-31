@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ถ่ายไว้ก่อน — จดด้วยกล้อง สรุปด้วย AI</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1D3B2A">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chonburi&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F1EEDF;
+    --paper-dark:#E7E2CC;
+    --board:#1D3B2A;
+    --board-dark:#122A1C;
+    --ink:#22301F;
+    --chalk:#F6F3E9;
+    --highlight:#F4C744;
+    --coral:#E8604C;
+    --tape:#D8CBA6;
+    --line:#c9c2a4;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    font-family:'IBM Plex Sans Thai', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+  }
+  header{
+    background:var(--board);
+    color:var(--chalk);
+    padding:16px 18px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:6px;
+    background:repeating-linear-gradient(90deg, var(--highlight) 0 18px, transparent 18px 30px);
+    opacity:.85;
+  }
+
+  .subject-bar{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding:14px 16px 0;
+    background:var(--paper);
+  }
+  .subject-tab{
+    flex:none;
+    padding:8px 16px;
+    background:var(--chalk);
+    border:2px solid var(--board);
+    border-bottom:none;
+    border-radius:10px 10px 0 0;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    color:var(--ink);
+    transform:translateY(2px);
+  }
+  .subject-tab.active{
+    background:var(--paper);
+    transform:translateY(0);
+    box-shadow:0 -2px 0 var(--paper) inset;
+  }
+  .subject-tab.add{
+    background:transparent;
+    border-style:dashed;
+    color:var(--board);
+  }
+  .board-strip{
+    height:2px;
+    background:var(--board);
+    margin:0 16px;
+  }
+
+  main{
+    padding:20px 16px 120px;
+    max-width:900px;
+    margin:0 auto;
+  }
+
+  .summary-panel{
+    background:var(--chalk);
+    border:2px solid var(--board);
+    border-radius:14px;
+    padding:16px 18px;
+    margin-bottom:22px;
+  }
+  .summary-panel h2{
+    font-family:'Chonburi', serif;
+    font-weight:400;
+    font-size:18px;
+    margin:0 0 8px;
+    color:var(--board);
+  }
+  .summary-text{
+    font-size:14px;
+    line-height:1.7;
+    white-space:pre-wrap;
+    color:var(--ink);
+  }
+  .summary-empty{
+    font-size:13px;
+    color:#8a8368;
+    font-style:italic;
+  }
+  .quiz-btn{
+    margin-top:12px;
+    background:var(--board);
+    color:var(--chalk);
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    font-family:'IBM Plex Sans Thai', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .quiz-btn:disabled{opacity:.4; cursor:not-allowed;}
+  .quiz-btn:hover:not(:disabled){background:var(--board-dark);}
+
+  .notes-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:20px;
+  }
+  .note-card{
+    background:var(--chalk);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:10px 10px 14px;
+    box-shadow:2px 3px 0 rgba(0,0,0,.08);
+    position:relative;
+  }
+  .note-card:nth-child(3n+1){ transform:rotate(-1.2deg); }
+  .note-card:nth-child(3n+2){ transform:rotate(0.8deg); }
+  .note-card:nth-child(3n+3){ transform:rotate(-0.4deg); }
+  .tape{
+    position:absolute;
+    top:-10px; left:50%;
+    transform:translateX(-50%) rotate(-2deg);
+    width:70px; height:22px;
+    background:var(--tape);
+    opacity:.85;
+  }
+  .note-card img{
+    width:100%;
+    display:block;
+    border:1px solid var(--line);
+    margin-bottom:8px;
+  }
+  .note-title{
+    font-weight:700;
+    font-size:14px;
+    margin-bottom:4px;
+  }
+  .note-summary{
+    font-size:12.5px;
+    line-height:1.55;
+    color:#4a4433;
+  }
+  .badge{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    padding:2px 8px;
+    border-radius:4px;
+    margin-bottom:6px;
+  }
+  .badge.important{ background:var(--highlight); color:var(--board-dark); }
+  .badge.skip{ background:#ddd6bd; color:#77715a; }
+  .note-status{
+    font-size:12px;
+    color:#8a8368;
+    font-style:italic;
+  }
+
+  .empty-state{
+    text-align:center;
+    padding:60px 20px;
+    color:#8a8368;
+  }
+  .empty-state svg{ margin-bottom:12px; opacity:.6; }
+
+  .fab{
+    position:fixed;
+    right:20px; bottom:24px;
+    width:60px; height:60px;
+    border-radius:50%;
+    background:var(--coral);
+    border:none;
+    color:white;
+    box-shadow:0 4px 14px rgba(0,0,0,.25);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:40;
+  }
+  .fab:active{ transform:scale(.94); }
+
+  .action-sheet{
+    position:fixed;
+    right:20px; bottom:96px;
+    background:var(--chalk);
+    border:2px solid var(--board);
+    border-radius:12px;
+    padding:8px;
+    display:none;
+    flex-direction:column;
+    gap:4px;
+    box-shadow:0 6px 18px rgba(0,0,0,.2);
+    z-index:41;
+    min-width:200px;
+  }
+  .action-sheet.show{ display:flex; }
+  .action-sheet button{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:transparent;
+    border:none;
+    padding:11px 12px;
+    border-radius:8px;
+    font-family:'IBM Plex Sans Thai', sans-serif;
+    font-size:14.5px;
+    font-weight:600;
+    color:var(--ink);
+    cursor:pointer;
+    text-align:left;
+  }
+  .action-sheet button:hover{ background:var(--paper-dark); }
+
+  #cameraInput{ display:none; }
+
+  .modal-overlay{
+    position:fixed; inset:0;
+    background:rgba(18,42,28,.55);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:50;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal{
+    background:var(--paper);
+    width:100%;
+    max-width:520px;
+    border-radius:18px 18px 0 0;
+    padding:20px 20px 26px;
+    max-height:88vh;
+    overflow-y:auto;
+  }
+  .modal h3{
+    font-family:'Chonburi', serif;
+    font-weight:400;
+    font-size:19px;
+    margin:0 0 14px;
+    color:var(--board);
+  }
+  .modal img.preview{
+    width:100%;
+    border-radius:8px;
+    margin-bottom:12px;
+    border:1px solid var(--line);
+  }
+  .field-label{
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:6px;
+    display:block;
+  }
+  textarea, select{
+    width:100%;
+    font-family:'IBM Plex Sans Thai', sans-serif;
+    font-size:14px;
+    padding:10px 12px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    margin-bottom:14px;
+    background:white;
+    resize:none;
+  }
+  .modal-actions{
+    display:flex;
+    gap:10px;
+  }
+  .btn{
+    flex:1;
+    padding:11px;
+    border-radius:8px;
+    border:none;
+    font-family:'IBM Plex Sans Thai', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .btn.primary{ background:var(--board); color:var(--chalk); }
+  .btn.secondary{ background:transparent; border:1.5px solid var(--line); color:var(--ink); }
+  .btn:disabled{ opacity:.5; }
+
+  .loader{
+    display:inline-block;
+    width:14px; height:14px;
+    border:2px solid rgba(255,255,255,.4);
+    border-top-color:white;
+    border-radius:50%;
+    animation:spin .7s linear infinite;
+    vertical-align:middle;
+    margin-right:6px;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* quiz overlay */
+  .quiz-overlay{
+    position:fixed; inset:0;
+    background:var(--board-dark);
+    display:none;
+    z-index:60;
+    color:var(--chalk);
+    flex-direction:column;
+  }
+  .quiz-overlay.show{ display:flex; }
+  .quiz-top{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 18px;
+  }
+  .quiz-top button{
+    background:transparent; border:none; color:var(--chalk);
+    font-size:22px; cursor:pointer;
+  }
+  .quiz-progress{ font-size:13px; opacity:.75; }
+  .quiz-body{
+    flex:1;
+    padding:10px 22px 30px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    max-width:560px;
+    margin:0 auto;
+    width:100%;
+  }
+  .quiz-question{
+    font-size:19px;
+    font-weight:600;
+    line-height:1.5;
+    margin-bottom:22px;
+  }
+  .choice{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:rgba(255,255,255,.06);
+    border:1.5px solid rgba(255,255,255,.25);
+    color:var(--chalk);
+    padding:13px 16px;
+    border-radius:10px;
+    font-family:'IBM Plex Sans Thai', sans-serif;
+    font-size:14.5px;
+    margin-bottom:10px;
+    cursor:pointer;
+  }
+  .choice.correct{ background:rgba(120,200,120,.25); border-color:#7dc87d; }
+  .choice.wrong{ background:rgba(232,96,76,.25); border-color:var(--coral); }
+  .choice:disabled{ cursor:default; }
+  .explain{
+    font-size:13.5px;
+    opacity:.85;
+    line-height:1.6;
+    margin-top:8px;
+    padding:12px 14px;
+    background:rgba(255,255,255,.06);
+    border-radius:8px;
+  }
+  .quiz-next{
+    margin-top:18px;
+    align-self:flex-start;
+    background:var(--highlight);
+    color:var(--board-dark);
+    border:none;
+    padding:10px 22px;
+    border-radius:8px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .quiz-result{
+    text-align:center;
+  }
+  .quiz-result .score{
+    font-family:'Chonburi', serif;
+    font-size:44px;
+    color:var(--highlight);
+    margin-bottom:8px;
+  }
+</style>
+</head>
+<body>
+
+<header></header>
+
+<div class="subject-bar" id="subjectBar"></div>
+<div class="board-strip"></div>
+
+<main>
+  <div class="summary-panel">
+    <h2 id="summaryTitle">สรุปรวม</h2>
+    <div id="summaryText" class="summary-empty">ยังไม่มีเนื้อหาสะสม — เริ่มถ่ายรูปแรกได้เลย</div>
+    <button class="quiz-btn" id="quizBtn" disabled>สร้างควิซทบทวน</button>
+  </div>
+
+  <div id="notesArea"></div>
+</main>
+
+<div class="action-sheet" id="actionSheet">
+  <button id="pickCamera">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    ถ่ายรูป
+  </button>
+  <button id="pickGallery">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+    เพิ่มรูปจากคลังภาพ
+  </button>
+</div>
+<button class="fab" id="fabBtn" title="ถ่าย/เพิ่มรูป">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+</button>
+<input type="file" id="cameraInput" accept="image/*" capture="environment">
+<input type="file" id="galleryInput" accept="image/*" multiple>
+
+<!-- capture modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>เพิ่มบันทึกใหม่</h3>
+    <img class="preview" id="previewImg" src="">
+    <label class="field-label">ครูพูดว่าอะไร (ถ้ามี)</label>
+    <textarea id="teacherNote" rows="2" placeholder='เช่น "อันนี้ออกสอบแน่นอน" หรือปล่อยว่างไว้ก็ได้'></textarea>
+    <div class="modal-actions">
+      <button class="btn secondary" id="cancelBtn">ยกเลิก</button>
+      <button class="btn primary" id="saveBtn">บันทึกและสรุป</button>
+    </div>
+  </div>
+</div>
+
+<!-- quiz overlay -->
+<div class="quiz-overlay" id="quizOverlay">
+  <div class="quiz-top">
+    <span class="quiz-progress" id="quizProgress"></span>
+    <button id="quizClose">✕</button>
+  </div>
+  <div class="quiz-body" id="quizBody"></div>
+</div>
+
+<script>
+const state = {
+  subjects: [],
+  activeSubject: null,
+  notes: {},      // subject -> [{id, title, summary, important, thumb}]
+  summaries: {},  // subject -> merged summary text
+  pendingImage: null // {base64, mediaType}
+};
+
+async function storageGet(key){
+  try{ return localStorage.getItem(key); }
+  catch(e){ return null; }
+}
+async function storageSet(key, value){
+  try{ localStorage.setItem(key, value); }catch(e){ console.error(e); }
+}
+
+async function callClaude(messages, maxTokens=1024){
+  // Calls our own serverless function (netlify/functions/claude.js),
+  // which holds the real Anthropic API key server-side.
+  const res = await fetch("/.netlify/functions/claude", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ max_tokens: maxTokens, messages })
+  });
+  if(!res.ok){
+    const errText = await res.text();
+    throw new Error("API error: " + errText);
+  }
+  const data = await res.json();
+  const text = (data.content || []).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+  return text;
+}
+
+function parseJsonLoose(text){
+  const cleaned = text.replace(/```json/g,"").replace(/```/g,"").trim();
+  return JSON.parse(cleaned);
+}
+
+// ---------- persistence ----------
+async function loadAll(){
+  const subs = await storageGet("subjects");
+  state.subjects = subs ? JSON.parse(subs) : ["ทั่วไป"];
+  state.activeSubject = state.subjects[0];
+  for(const s of state.subjects){
+    const notes = await storageGet("notes:"+s);
+    state.notes[s] = notes ? JSON.parse(notes) : [];
+    const summary = await storageGet("summary:"+s);
+    state.summaries[s] = summary || "";
+  }
+  render();
+}
+async function saveSubjects(){ await storageSet("subjects", JSON.stringify(state.subjects)); }
+async function saveNotes(subject){ await storageSet("notes:"+subject, JSON.stringify(state.notes[subject])); }
+async function saveSummary(subject){ await storageSet("summary:"+subject, state.summaries[subject]); }
+
+// ---------- rendering ----------
+function render(){
+  renderSubjectBar();
+  renderSummary();
+  renderNotes();
+}
+
+function renderSubjectBar(){
+  const bar = document.getElementById("subjectBar");
+  bar.innerHTML = "";
+  state.subjects.forEach(s=>{
+    const tab = document.createElement("div");
+    tab.className = "subject-tab" + (s===state.activeSubject ? " active":"");
+    tab.textContent = s;
+    tab.onclick = ()=>{ state.activeSubject = s; render(); };
+    bar.appendChild(tab);
+  });
+  const addTab = document.createElement("div");
+  addTab.className = "subject-tab add";
+  addTab.textContent = "+ วิชาใหม่";
+  addTab.onclick = async ()=>{
+    const name = prompt("ชื่อวิชา:");
+    if(name && !state.subjects.includes(name)){
+      state.subjects.push(name);
+      state.notes[name] = [];
+      state.summaries[name] = "";
+      state.activeSubject = name;
+      await saveSubjects();
+      render();
+    }
+  };
+  bar.appendChild(addTab);
+}
+
+function renderSummary(){
+  document.getElementById("summaryTitle").textContent = "สรุปรวม · " + state.activeSubject;
+  const text = state.summaries[state.activeSubject];
+  const el = document.getElementById("summaryText");
+  if(text){
+    el.className = "summary-text";
+    el.textContent = text;
+  } else {
+    el.className = "summary-empty";
+    el.textContent = "ยังไม่มีเนื้อหาสะสม — เริ่มถ่ายรูปแรกได้เลย";
+  }
+  document.getElementById("quizBtn").disabled = !text;
+}
+
+function renderNotes(){
+  const area = document.getElementById("notesArea");
+  const notes = state.notes[state.activeSubject] || [];
+  if(notes.length===0){
+    area.innerHTML = `<div class="empty-state">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <div>ยังไม่มีรูปในวิชานี้ กดปุ่มกล้องมุมขวาล่างเพื่อเริ่ม</div>
+    </div>`;
+    return;
+  }
+  area.innerHTML = "";
+  const grid = document.createElement("div");
+  grid.className = "notes-grid";
+  notes.slice().reverse().forEach(n=>{
+    const card = document.createElement("div");
+    card.className = "note-card";
+    card.innerHTML = `
+      <div class="tape"></div>
+      ${n.thumb ? `<img src="${n.thumb}">` : ""}
+      ${n.status==="done" ? `<span class="badge ${n.important?'important':'skip'}">${n.important?'ออกสอบ!':'อ่านผ่านๆ'}</span>` : ""}
+      <div class="note-title">${n.title || "กำลังอ่านรูป..."}</div>
+      ${n.status==="done"
+        ? `<div class="note-summary">${n.summary}</div>`
+        : n.status==="error"
+          ? `<div class="note-status">อ่านรูปไม่สำเร็จ ลองใหม่อีกครั้ง</div>`
+          : `<div class="note-status"><span class="loader" style="border-color:rgba(34,48,31,.25); border-top-color:#22301F;"></span>กำลังสรุป...</div>`
+      }
+    `;
+    grid.appendChild(card);
+  });
+  area.appendChild(grid);
+}
+
+// ---------- capture flow ----------
+document.getElementById("fabBtn").onclick = (e)=>{
+  e.stopPropagation();
+  document.getElementById("actionSheet").classList.toggle("show");
+};
+document.addEventListener("click", (e)=>{
+  const sheet = document.getElementById("actionSheet");
+  if(sheet.classList.contains("show") && !sheet.contains(e.target) && e.target.id!=="fabBtn"){
+    sheet.classList.remove("show");
+  }
+});
+
+document.getElementById("pickCamera").onclick = ()=>{
+  document.getElementById("actionSheet").classList.remove("show");
+  document.getElementById("cameraInput").click();
+};
+document.getElementById("pickGallery").onclick = ()=>{
+  document.getElementById("actionSheet").classList.remove("show");
+  document.getElementById("galleryInput").click();
+};
+
+document.getElementById("cameraInput").onchange = (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  readFileToPending(file);
+  e.target.value = "";
+};
+
+document.getElementById("galleryInput").onchange = async (e)=>{
+  const files = Array.from(e.target.files || []);
+  e.target.value = "";
+  if(files.length===0) return;
+  if(files.length===1){
+    readFileToPending(files[0]);
+    return;
+  }
+  // multiple files: skip the note modal, process each directly
+  for(const file of files){
+    const img = await fileToImage(file);
+    await addAndProcessNote(state.activeSubject, img, "");
+  }
+};
+
+function fileToImage(file){
+  return new Promise((resolve)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      const dataUrl = reader.result;
+      resolve({ base64: dataUrl.split(",")[1], mediaType: file.type || "image/jpeg", dataUrl });
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function readFileToPending(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    const dataUrl = reader.result;
+    const base64 = dataUrl.split(",")[1];
+    state.pendingImage = { base64, mediaType: file.type || "image/jpeg", dataUrl };
+    document.getElementById("previewImg").src = dataUrl;
+    document.getElementById("teacherNote").value = "";
+    document.getElementById("modalOverlay").classList.add("show");
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById("cancelBtn").onclick = ()=>{
+  document.getElementById("modalOverlay").classList.remove("show");
+  state.pendingImage = null;
+};
+
+document.getElementById("saveBtn").onclick = async ()=>{
+  if(!state.pendingImage) return;
+  const subject = state.activeSubject;
+  const teacherNote = document.getElementById("teacherNote").value.trim();
+  const img = state.pendingImage;
+  document.getElementById("modalOverlay").classList.remove("show");
+  state.pendingImage = null;
+  await addAndProcessNote(subject, img, teacherNote);
+};
+
+async function addAndProcessNote(subject, img, teacherNote){
+  const noteId = Date.now().toString() + Math.random().toString(36).slice(2,6);
+  const note = { id:noteId, title:"", summary:"", important:false, thumb:img.dataUrl, status:"loading" };
+  state.notes[subject].push(note);
+  if(subject===state.activeSubject) render();
+  await saveNotes(subject);
+
+  try{
+    const prompt = `นี่คือรูปที่นักเรียนถ่ายในห้องเรียนวิชา "${subject}"${teacherNote ? ` ครูพูดว่า: "${teacherNote}"` : ""}.
+อ่านเนื้อหาในรูป (กระดาน สไลด์ หนังสือ หรือโน้ต) แล้วสรุปเป็นเนื้อหาสั้นกระชับ เป็นภาษาไทย เหมาะสำหรับทบทวนก่อนสอบ
+ตอบเป็น JSON เท่านั้น ไม่ต้องมีข้อความอื่น รูปแบบ:
+{"title": "หัวข้อสั้นๆ", "summary": "สรุปเนื้อหา 2-4 ประโยค", "important": true หรือ false}
+important ให้เป็น true ถ้าเนื้อหาดูสำคัญหรือครูบอกว่าจะออกสอบ, false ถ้าดูเหมือนเป็นแค่ตัวอย่างทั่วไปหรือครูบอกว่าไม่ต้องจด`;
+
+    const text = await callClaude([{
+      role:"user",
+      content:[
+        { type:"image", source:{ type:"base64", media_type: img.mediaType, data: img.base64 } },
+        { type:"text", text: prompt }
+      ]
+    }]);
+    const parsed = parseJsonLoose(text);
+
+    const idx = state.notes[subject].findIndex(n=>n.id===noteId);
+    state.notes[subject][idx] = { ...state.notes[subject][idx], title:parsed.title, summary:parsed.summary, important:!!parsed.important, status:"done" };
+    await saveNotes(subject);
+    if(subject===state.activeSubject) render();
+
+    await refreshSummary(subject);
+  }catch(err){
+    console.error(err);
+    const idx = state.notes[subject].findIndex(n=>n.id===noteId);
+    if(idx>-1){ state.notes[subject][idx].status = "error"; await saveNotes(subject); if(subject===state.activeSubject) render(); }
+  }
+}
+
+async function refreshSummary(subject){
+  const doneNotes = state.notes[subject].filter(n=>n.status==="done");
+  if(doneNotes.length===0) return;
+  const list = doneNotes.map((n,i)=>`${i+1}. [${n.important?"สำคัญ":"ทั่วไป"}] ${n.title}: ${n.summary}`).join("\n");
+  const prompt = `นี่คือรายการบันทึกย่อยที่นักเรียนถ่ายเก็บไว้ในวิชา "${subject}":
+${list}
+
+จงรวมเป็นสรุปเนื้อหาวิชานี้ฉบับเดียว จัดกลุ่มตามหัวข้อ ใช้ bullet point (ขึ้นต้นด้วย -) กระชับ อ่านง่าย เน้นเนื้อหาที่ทำเครื่องหมายว่า "สำคัญ" เป็นพิเศษ ตอบเป็นข้อความล้วน ภาษาไทย ไม่ต้องมี JSON หรือคำนำ`;
+  try{
+    const text = await callClaude([{ role:"user", content: prompt }], 1200);
+    state.summaries[subject] = text.trim();
+    await saveSummary(subject);
+    render();
+  }catch(err){ console.error(err); }
+}
+
+// ---------- quiz ----------
+let quizState = null;
+
+document.getElementById("quizBtn").onclick = async ()=>{
+  const subject = state.activeSubject;
+  const summary = state.summaries[subject];
+  if(!summary) return;
+
+  document.getElementById("quizOverlay").classList.add("show");
+  document.getElementById("quizBody").innerHTML = `<div style="text-align:center;"><span class="loader" style="width:20px;height:20px;"></span>กำลังออกข้อสอบจากสรุปของคุณ...</div>`;
+  document.getElementById("quizProgress").textContent = "";
+
+  try{
+    const prompt = `จากสรุปเนื้อหาวิชา "${subject}" ต่อไปนี้:
+${summary}
+
+จงสร้างคำถามแบบเลือกตอบ 5 ข้อ เพื่อทบทวนก่อนสอบ ตอบเป็น JSON array เท่านั้น ไม่ต้องมีข้อความอื่น รูปแบบ:
+[{"question":"...", "choices":["...","...","...","..."], "answer_index":0, "explanation":"..."}]
+คำถามและตัวเลือกเป็นภาษาไทย, answer_index คือ index (0-3) ของตัวเลือกที่ถูก, explanation อธิบายสั้นๆ ว่าทำไมถูก`;
+    const text = await callClaude([{ role:"user", content: prompt }], 1500);
+    const questions = parseJsonLoose(text);
+    quizState = { questions, index:0, score:0, answered:false };
+    renderQuizQuestion();
+  }catch(err){
+    console.error(err);
+    document.getElementById("quizBody").innerHTML = `<div style="text-align:center;">สร้างควิซไม่สำเร็จ ลองใหม่อีกครั้ง</div>`;
+  }
+};
+
+function renderQuizQuestion(){
+  const { questions, index } = quizState;
+  if(index >= questions.length){
+    document.getElementById("quizProgress").textContent = "";
+    document.getElementById("quizBody").innerHTML = `
+      <div class="quiz-result">
+        <div class="score">${quizState.score}/${questions.length}</div>
+        <div style="margin-bottom:20px;">คะแนนทบทวนของคุณ</div>
+        <button class="btn primary" style="max-width:220px;margin:0 auto;display:block;" onclick="document.getElementById('quizOverlay').classList.remove('show')">เสร็จสิ้น</button>
+      </div>`;
+    return;
+  }
+  document.getElementById("quizProgress").textContent = `ข้อ ${index+1} / ${questions.length}`;
+  const q = questions[index];
+  quizState.answered = false;
+  const body = document.getElementById("quizBody");
+  body.innerHTML = `
+    <div class="quiz-question">${q.question}</div>
+    <div id="choicesWrap"></div>
+  `;
+  const wrap = document.getElementById("choicesWrap");
+  q.choices.forEach((c,i)=>{
+    const btn = document.createElement("button");
+    btn.className = "choice";
+    btn.textContent = c;
+    btn.onclick = ()=> selectChoice(i);
+    wrap.appendChild(btn);
+  });
+}
+
+function selectChoice(i){
+  if(quizState.answered) return;
+  quizState.answered = true;
+  const { questions, index } = quizState;
+  const q = questions[index];
+  const buttons = document.querySelectorAll("#choicesWrap .choice");
+  buttons.forEach((b,bi)=>{
+    b.disabled = true;
+    if(bi===q.answer_index) b.classList.add("correct");
+    else if(bi===i) b.classList.add("wrong");
+  });
+  if(i===q.answer_index) quizState.score++;
+
+  const explain = document.createElement("div");
+  explain.className = "explain";
+  explain.textContent = q.explanation || "";
+  document.getElementById("quizBody").appendChild(explain);
+
+  const nextBtn = document.createElement("button");
+  nextBtn.className = "quiz-next";
+  nextBtn.textContent = index+1 < questions.length ? "ข้อถัดไป" : "ดูผลคะแนน";
+  nextBtn.onclick = ()=>{ quizState.index++; renderQuizQuestion(); };
+  document.getElementById("quizBody").appendChild(nextBtn);
+}
+
+document.getElementById("quizClose").onclick = ()=> document.getElementById("quizOverlay").classList.remove("show");
+
+loadAll();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("/service-worker.js").catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
