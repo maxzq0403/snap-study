@@ -649,7 +649,7 @@ async function storageSet(key, value){
 }
 
 async function callClaude(messages, maxTokens=1024){
-  const res = await fetch("/.netlify/functions/claude", {
+  const res = await fetch("/.netlify/functions/gemini", {
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     body: JSON.stringify({ max_tokens: maxTokens, messages })
