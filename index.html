@@ -832,7 +832,7 @@ function renderNotes(){
         ${n.status==="done"
           ? `<div class="note-summary">${n.summary}</div>`
           : n.status==="error"
-            ? `<div class="note-status">อ่านรูปไม่สำเร็จ ลองใหม่อีกครั้ง</div>`
+            ? `<div class="note-status">อ่านรูปไม่สำเร็จ ลองใหม่อีกครั้ง${n.errorMsg ? `<br><span style="font-size:10.5px;opacity:.7;">${n.errorMsg}</span>` : ""}</div>`
             : `<div class="note-status"><span class="loader" style="border-color:rgba(34,48,31,.25); border-top-color:#22301F;"></span>กำลังสรุป...</div>`
         }
       `;
@@ -871,20 +871,47 @@ document.getElementById("addMoreCamera").onclick = ()=> document.getElementById(
 document.getElementById("addMoreGallery").onclick = ()=> document.getElementById("galleryInput").click();
 
 function fileToImage(file){
-  return new Promise((resolve)=>{
+  return new Promise((resolve, reject)=>{
     const reader = new FileReader();
     reader.onload = ()=>{
-      const dataUrl = reader.result;
-      resolve({ base64: dataUrl.split(",")[1], mediaType: file.type || "image/jpeg", dataUrl });
+      const img = new Image();
+      img.onload = ()=>{
+        const MAX_DIM = 1600;
+        let { width, height } = img;
+        if(width > MAX_DIM || height > MAX_DIM){
+          if(width > height){
+            height = Math.round(height * (MAX_DIM / width));
+            width = MAX_DIM;
+          } else {
+            width = Math.round(width * (MAX_DIM / height));
+            height = MAX_DIM;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+        resolve({ base64: dataUrl.split(",")[1], mediaType: "image/jpeg", dataUrl });
+      };
+      img.onerror = reject;
+      img.src = reader.result;
     };
+    reader.onerror = reject;
     reader.readAsDataURL(file);
   });
 }
 
 async function addFilesToPending(files){
   for(const file of files){
-    const img = await fileToImage(file);
-    state.pendingImages.push(img);
+    try{
+      const img = await fileToImage(file);
+      state.pendingImages.push(img);
+    }catch(err){
+      console.error(err);
+      alert("โหลดรูปนี้ไม่สำเร็จ ลองใหม่อีกครั้ง");
+    }
   }
   renderPhotoStrip();
   document.getElementById("modalOverlay").classList.add("show");
@@ -974,7 +1001,7 @@ important ให้เป็น true ถ้าเนื้อหาดูสำ�
   }catch(err){
     console.error(err);
     const idx = state.notes[subject].findIndex(n=>n.id===noteId);
-    if(idx>-1){ state.notes[subject][idx].status = "error"; await saveNotes(subject); if(subject===state.activeSubject) render(); }
+    if(idx>-1){ state.notes[subject][idx].status = "error"; state.notes[subject][idx].errorMsg = String(err.message||err).slice(0,120); await saveNotes(subject); if(subject===state.activeSubject) render(); }
   }
 }
 
