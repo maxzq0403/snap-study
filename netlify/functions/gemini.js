@@ -7,7 +7,7 @@
 // converts the Gemini response back to the shape the frontend expects
 // — so index.html does not need to change at all.
 
-const MODEL = "gemini-2.5-flash";
+const MODEL = "gemini-flash-latest";
 
 function toGeminiContents(messages) {
   return messages.map((m) => {
